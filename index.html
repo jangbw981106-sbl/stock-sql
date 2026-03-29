@@ -8,19 +8,11 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root {
-  /* Light Theme Colors */
-  --bg: #f8fafc;
-  --surface: #ffffff;
-  --surface2: #f1f5f9;
-  --border: #e2e8f0;
-  --border2: #cbd5e1;
-  --accent: #2563eb; /* Blue */
-  --text: #0f172a;
-  --muted: #64748b;
-  --muted2: #475569;
-  --up: #16a34a; /* Green */
-  --down: #dc2626; /* Red */
-  --flat: #94a3b8;
+  --bg: #f8fafc; --surface: #ffffff; --surface2: #f1f5f9;
+  --border: #e2e8f0; --border2: #cbd5e1;
+  --accent: #2563eb; --text: #0f172a;
+  --muted: #64748b; --muted2: #475569;
+  --up: #16a34a; --down: #dc2626; --flat: #94a3b8;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
@@ -38,7 +30,6 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
 .sidebar-search { padding:14px 14px 10px; }
 .sidebar-search input { width:100%; background:var(--surface2); border:1px solid var(--border2); color:var(--text); padding:10px 12px; font-family:'Noto Sans KR', sans-serif; font-size:0.8rem; outline:none; border-radius:6px; transition:border-color 0.2s; }
 .sidebar-search input:focus { border-color:var(--accent); }
-.sidebar-search input::placeholder { color:var(--muted); }
 .add-btn { width:100%; margin-top:8px; background:var(--accent); color:#fff; border:none; padding:10px; font-family:'Noto Sans KR', sans-serif; font-size:0.8rem; font-weight:700; cursor:pointer; border-radius:6px; transition:opacity 0.2s; }
 .add-btn:hover { opacity:0.85; }
 
@@ -62,21 +53,15 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
 
 .sidebar-footer { padding:12px 16px; border-top:1px solid var(--border); font-family:'Space Mono',monospace; font-size:0.65rem; color:var(--muted); display:flex; justify-content:space-between; background:var(--surface2); }
 
-.main-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:24px; }
-.stock-title .big-ticker { font-family:'Space Mono',monospace; font-size:1.8rem; font-weight:700; color:var(--text); letter-spacing:1px; }
-.stock-title .big-name { font-size:0.95rem; color:var(--muted2); margin-top:4px; }
+.main-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:24px; border-bottom:1px solid var(--border); padding-bottom:20px; }
+.stock-title .big-ticker { font-family:'Space Mono',monospace; font-size:2rem; font-weight:700; color:var(--text); letter-spacing:1px; }
+.stock-title .big-name { font-size:1rem; color:var(--muted2); margin-top:4px; }
 .big-price-area { text-align:right; }
 .big-price { font-family:'Space Mono',monospace; font-size:2.5rem; font-weight:700; }
 .big-change { font-family:'Space Mono',monospace; font-size:1rem; padding:4px 12px; border-radius:4px; display:inline-block; margin-top:4px; font-weight:600;}
 .big-change.up { background:rgba(22,163,74,0.1); color:var(--up); }
 .big-change.down { background:rgba(220,38,38,0.1); color:var(--down); }
 .big-change.flat { background:rgba(148,163,184,0.1); color:var(--flat); }
-
-/* 스탯 그리드 (PER, PBR 포함) */
-.stat-row { display:grid; grid-template-columns:repeat(8,1fr); gap:12px; margin-bottom:24px; }
-.stat-box { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:14px; box-shadow:0 1px 2px rgba(0,0,0,0.03); }
-.stat-label { font-size:0.7rem; color:var(--muted2); margin-bottom:6px; font-weight:600;}
-.stat-value { font-family:'Space Mono',monospace; font-size:0.9rem; font-weight:700; }
 
 .tabs { display:flex; gap:8px; margin-bottom:24px; border-bottom:2px solid var(--surface2); }
 .tab-btn { background:none; border:none; color:var(--muted); padding:10px 16px; font-family:'Noto Sans KR',sans-serif; font-size:0.9rem; font-weight:600; cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-2px; transition:all 0.2s; }
@@ -88,7 +73,6 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
 .range-btn { background:var(--surface); border:1px solid var(--border2); color:var(--text); padding:6px 14px; font-family:'Space Mono',monospace; font-size:0.75rem; font-weight:600; cursor:pointer; border-radius:6px; transition:all 0.2s; }
 .range-btn:hover,.range-btn.active { border-color:var(--accent); color:var(--accent); background:rgba(37,99,235,0.05); }
 
-/* 비교 차트 인풋 */
 .compare-box { display:flex; align-items:center; gap:6px; margin-left:auto; background:var(--surface2); padding:4px 6px; border-radius:6px; border:1px solid var(--border2); }
 .compare-box input { border:none; background:none; outline:none; width:100px; font-family:'Noto Sans KR',sans-serif; font-size:0.75rem; padding:4px; }
 .compare-box button { background:var(--accent); color:#fff; border:none; padding:4px 10px; border-radius:4px; font-size:0.7rem; cursor:pointer; font-weight:bold; }
@@ -98,7 +82,16 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
 .chart-wrap canvas { width:100% !important; height:100% !important; }
 .chart-loading { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(255,255,255,0.8); border-radius:12px; font-weight:600; color:var(--accent); z-index:10; }
 
-/* 기술적 지표 */
+/* 재무 및 지표 탭 (신규) */
+.stats-grid-container { display:flex; flex-direction:column; gap:24px; }
+.stats-section-title { font-size:1.1rem; font-weight:700; color:var(--text); border-left:4px solid var(--accent); padding-left:10px; margin-bottom:12px; }
+.stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
+.stat-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:18px; box-shadow:0 2px 4px rgba(0,0,0,0.02); }
+.stat-card .label { font-size:0.75rem; color:var(--muted2); font-weight:600; margin-bottom:8px; }
+.stat-card .value { font-family:'Space Mono',monospace; font-size:1.2rem; font-weight:700; color:var(--text); }
+.stat-card .sub { font-size:0.7rem; color:var(--muted); margin-top:6px; }
+
+/* 기술적 지표 (차트 하단) */
 .indicators-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:20px; }
 .indicator-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:18px; box-shadow:0 2px 4px rgba(0,0,0,0.02); }
 .ind-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
@@ -123,8 +116,6 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
 .ai-content { font-size:0.95rem; line-height:1.8; color:var(--text); }
 .ai-content h3 { color:var(--accent); margin:20px 0 10px; font-size:1.1rem; }
 .ai-content strong { color:#000; }
-.ai-content ul { margin-left:20px; margin-bottom:16px; }
-.ai-content li { margin-bottom:6px; }
 .ai-placeholder { text-align:center; padding:40px 20px; color:var(--muted); line-height:1.6; }
 
 /* 뉴스 및 증권사 리포트 */
@@ -132,7 +123,6 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
 .analyst-card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:20px; }
 .rating-bar-container { display:flex; height:12px; border-radius:6px; overflow:hidden; margin:16px 0; }
 .rating-item { display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:8px; border-bottom:1px solid var(--surface2); padding-bottom:4px;}
-
 .news-list { display:flex; flex-direction:column; gap:12px; }
 .news-item { background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:16px; transition:box-shadow 0.2s; }
 .news-item:hover { box-shadow:0 4px 12px rgba(0,0,0,0.05); border-color:var(--border2); }
@@ -148,15 +138,11 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
 
 @keyframes spin { to { transform:rotate(360deg); } }
 @keyframes fadeIn { from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);} }
-
 .status-toast { position:fixed; bottom:24px; right:24px; background:var(--text); color:#fff; padding:12px 20px; border-radius:8px; font-size:0.85rem; font-weight:600; z-index:999; display:none; box-shadow:0 4px 12px rgba(0,0,0,0.15); }
 .status-toast.error { background:var(--down); }
 
 /* 모바일 대응 */
-@media (max-width: 1024px) {
-  .stat-row { grid-template-columns:repeat(4,1fr); }
-  .analyst-grid { grid-template-columns:1fr; }
-}
+@media (max-width: 1024px) { .stats-grid { grid-template-columns:repeat(2,1fr); } .analyst-grid { grid-template-columns:1fr; } }
 @media (max-width: 768px) {
   .sidebar { width: 100%; height: auto; position: relative; border-right: none; border-bottom: 1px solid var(--border); box-shadow:none; }
   .main { margin-left: 0; max-width: 100%; padding: 16px; }
@@ -169,15 +155,11 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
   .sidebar-search, .preset-list, .sidebar-section-label, .sidebar-footer { display: none; }
   .sidebar-header { display: flex; justify-content: space-between; align-items: center; padding: 16px; }
   .mobile-add-btn { display: flex !important; }
-  .stat-row { grid-template-columns: repeat(2, 1fr); }
   .tabs { overflow-x: auto; white-space: nowrap; padding-bottom:4px;}
   .indicators-grid { grid-template-columns: 1fr; }
   .compare-box { margin-left:0; width:100%; justify-content:space-between;}
-  .api-key-box { width:100%; flex-direction:column; align-items:stretch;}
 }
 .mobile-add-btn { display: none; position: fixed; bottom: 24px; right: 24px; z-index: 200; background: var(--accent); color: #fff; border: none; width: 56px; height: 56px; border-radius: 50%; font-size: 1.8rem; box-shadow: 0 4px 16px rgba(37,99,235,0.4); align-items: center; justify-content: center; }
-
-/* 모바일 모달 창 CSS 추가 (버그 수정) */
 .mobile-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 999; display: none; align-items: flex-end; justify-content: center; }
 .mobile-modal.open { display: flex; animation: fadeIn 0.2s ease; }
 </style>
@@ -195,13 +177,12 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
     </div>
     <div class="sidebar-section-label">추천 검색어</div>
     <div class="preset-list">
-      <button class="preset-btn" onclick="addTicker('카카오')">카카오</button>
-      <button class="preset-btn" onclick="addTicker('현대차')">현대차</button>
+      <button class="preset-btn" onclick="addTicker('005930')">삼성전자</button>
+      <button class="preset-btn" onclick="addTicker('035720')">카카오</button>
       <button class="preset-btn" onclick="addTicker('AAPL')">Apple</button>
       <button class="preset-btn" onclick="addTicker('NVDA')">Nvidia</button>
       <button class="preset-btn" onclick="addTicker('TSLA')">Tesla</button>
       <button class="preset-btn" onclick="addTicker('BTC-USD')">Bitcoin</button>
-      <button class="preset-btn" onclick="addTicker('^GSPC')">S&P500</button>
     </div>
     <div class="sidebar-section-label">내 관심종목</div>
     <div class="watchlist" id="watchlist">
@@ -231,20 +212,15 @@ const chartHistoryData = {};
 let activeTicker = null;
 let compareTicker = null;
 let compareHistoryData = null;
-
 let priceChart = null;
 let currentRange = '1mo';
 
-// ★ 고정된 Gemini API KEY (요청하신 키 적용) ★
+// ★ 고정된 Gemini API KEY ★
 const GEMINI_API_KEY = "AIzaSyBJHPDTAJqrn5J9NP_2LqCWlaYkKi6XOuQ";
 
-// 시계 업데이트
-function updateClock() {
-  document.getElementById('clock').textContent = new Date().toLocaleTimeString('ko-KR');
-}
+function updateClock() { document.getElementById('clock').textContent = new Date().toLocaleTimeString('ko-KR'); }
 setInterval(updateClock,1000); updateClock();
 
-// 토스트 알림
 let toastTimer;
 function showToast(msg,type='') {
   const el = document.getElementById('statusToast');
@@ -256,76 +232,67 @@ function showToast(msg,type='') {
 }
 function hideToast(){ document.getElementById('statusToast').style.display='none'; }
 
-// 프록시 페치 (버그 수정: 더 안정적인 프록시 우선 사용 및 에러 방어)
+// 프록시 페치 로직 (가장 안정적)
 async function proxyFetch(url) {
   const urlObj = new URL(url);
-  urlObj.searchParams.append('_t', Date.now()); // 캐시 무효화
+  urlObj.searchParams.append('_t', Date.now()); 
   const finalUrl = urlObj.toString();
-
-  // 프록시 서버 리스트 (1순위 Codetabs 추가)
   const proxies = [
     u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
-    u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
-    u => `https://corsproxy.io/?${encodeURIComponent(u)}`
+    u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`
   ];
-
   for (const makeProxy of proxies) {
     try {
-      const res = await fetch(makeProxy(finalUrl), { signal: AbortSignal.timeout(10000) });
+      const res = await fetch(makeProxy(finalUrl), { signal: AbortSignal.timeout(8000) });
       if (!res.ok) continue;
       const text = await res.text();
-      
-      // HTML 에러 페이지가 반환되면 스킵
       if(text.trim().startsWith('<')) continue; 
-      
       let parsed = JSON.parse(text);
       if (parsed.contents) parsed = JSON.parse(parsed.contents);
       return parsed;
-    } catch (e) {
-      console.warn("Proxy attempt failed:", e);
-    }
+    } catch (e) { console.warn("Proxy fallback..."); }
   }
-  throw new Error('데이터 서버 연결 실패. 잠시 후 다시 시도해주세요.');
+  throw new Error('서버 연결 실패');
 }
 
-// 1. 이름 -> 코드로 변환
+// 1. 한국 주식 스마트 검색 (버그 수정됨)
 async function resolveTicker(query) {
+  // 숫자 6자리인 경우 한국 주식으로 인식하여 .KS를 기본값으로 시도
+  const isKoreanCode = /^\d{6}$/.test(query);
   try {
     const json = await proxyFetch(`https://query2.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(query)}&quotesCount=1`);
     if(json.quotes && json.quotes.length > 0) return json.quotes[0].symbol;
   } catch(e) {}
-  return query.toUpperCase();
+  // 검색 API가 막혔을 때의 든든한 백업 플랜
+  return isKoreanCode ? query + '.KS' : query.toUpperCase();
 }
 
-// 2. 실시간 가격 정보
+// 2. 주식 데이터 가져오기 병렬화
 async function fetchStock(ticker) {
   const json = await proxyFetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1d&range=1d`);
-  if (!json.chart || !json.chart.result) throw new Error("가격 정보를 불러올 수 없습니다.");
   const meta = json.chart.result[0].meta;
   return {
     ticker: meta.symbol, 
     name: meta.shortName || meta.symbol,
     price: meta.regularMarketPrice,
     prevClose: meta.chartPreviousClose || meta.previousClose || meta.regularMarketPreviousClose,
-    open: meta.regularMarketOpen, 
-    high: meta.regularMarketDayHigh,
-    low: meta.regularMarketDayLow, 
-    volume: meta.regularMarketVolume,
-    currency: meta.currency,
-    marketState: meta.marketState
+    open: meta.regularMarketOpen, high: meta.regularMarketDayHigh, low: meta.regularMarketDayLow, 
+    volume: meta.regularMarketVolume, currency: meta.currency, marketState: meta.marketState
   };
 }
 
-// 3. 펀더멘탈 & 증권사 리포트
 async function fetchFundamentals(ticker) {
   try {
     const json = await proxyFetch(`https://query1.finance.yahoo.com/v10/finance/quoteSummary/${encodeURIComponent(ticker)}?modules=summaryDetail,defaultKeyStatistics,financialData,recommendationTrend,upgradeDowngradeHistory`);
-    if (!json.quoteSummary || !json.quoteSummary.result) return {};
     const res = json.quoteSummary.result[0];
     return {
       per: res.summaryDetail?.trailingPE?.raw || res.summaryDetail?.forwardPE?.raw,
       pbr: res.defaultKeyStatistics?.priceToBook?.raw,
       roe: res.financialData?.returnOnEquity?.raw,
+      divYield: res.summaryDetail?.dividendYield?.raw,
+      fiftyTwoHigh: res.summaryDetail?.fiftyTwoWeekHigh?.raw,
+      fiftyTwoLow: res.summaryDetail?.fiftyTwoWeekLow?.raw,
+      avgVolume: res.summaryDetail?.averageVolume?.raw,
       recommendation: res.financialData?.recommendationKey,
       targetPrice: res.financialData?.targetMeanPrice?.raw,
       trend: res.recommendationTrend?.trend?.[0],
@@ -334,14 +301,11 @@ async function fetchFundamentals(ticker) {
   } catch(e) { return {}; }
 }
 
-// 4. 과거 차트 기록 (버그 수정: 데이터 없는 경우 예외처리)
 async function fetchHistory(ticker, range='1mo') {
   const imap = {'1mo':'1d','3mo':'1d','6mo':'1d','1y':'1wk','2y':'1wk'};
   const json = await proxyFetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=${imap[range]||'1d'}&range=${range}`);
-  
   const result = json.chart?.result?.[0];
-  if (!result) throw new Error("차트 데이터가 존재하지 않습니다.");
-  
+  if (!result) throw new Error("차트 데이터 없음");
   const ts = result.timestamp || [];
   const q = result.indicators?.quote?.[0] || {};
   return ts.map((t,i)=>({
@@ -350,7 +314,7 @@ async function fetchHistory(ticker, range='1mo') {
   })).filter(d => d.close != null);
 }
 
-// 유틸 함수
+// 숫자 포맷팅 유틸
 function fmt(n, dec=2){
   if(n==null || isNaN(n)) return '--';
   if(Math.abs(n)>=1e12) return (n/1e12).toFixed(2)+'T';
@@ -387,7 +351,7 @@ function renderWatchlist() {
   }).join('');
 }
 
-// 메인 화면 렌더링
+// 메인 렌더링 (재무 탭 신규 추가)
 async function renderMain(ticker) {
   const d = stockData[ticker];
   if(!d) return;
@@ -408,24 +372,14 @@ async function renderMain(ticker) {
       </div>
     </div>
 
-    <div class="stat-row">
-      <div class="stat-box"><div class="stat-label">시가</div><div class="stat-value">${fmt(d.open)}</div></div>
-      <div class="stat-box"><div class="stat-label">고가</div><div class="stat-value" style="color:var(--up)">${fmt(d.high)}</div></div>
-      <div class="stat-box"><div class="stat-label">저가</div><div class="stat-value" style="color:var(--down)">${fmt(d.low)}</div></div>
-      <div class="stat-box"><div class="stat-label">거래량</div><div class="stat-value">${fmt(d.volume,0)}</div></div>
-      <div class="stat-box"><div class="stat-label">PER</div><div class="stat-value">${fmt(d.per)}</div></div>
-      <div class="stat-box"><div class="stat-label">PBR</div><div class="stat-value">${fmt(d.pbr)}</div></div>
-      <div class="stat-box"><div class="stat-label">ROE</div><div class="stat-value">${d.roe != null ? fmt(d.roe*100)+'%' : '--'}</div></div>
-      <div class="stat-box"><div class="stat-label">목표가</div><div class="stat-value">${d.targetPrice ? cs(d.currency)+fmt(d.targetPrice) : '--'}</div></div>
-    </div>
-
     <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('chart',this)">📊 차트 및 지표</button>
-      <button class="tab-btn" onclick="switchTab('news',this)">📰 증권사 리포트 & 속보</button>
-      <button class="tab-btn" onclick="switchTab('ai',this)">🤖 Gemini AI 분석</button>
+      <button class="tab-btn active" onclick="switchTab('chart',this)">📊 차트</button>
+      <button class="tab-btn" onclick="switchTab('stats',this)">📋 재무/지표</button>
+      <button class="tab-btn" onclick="switchTab('news',this)">📰 리포트/뉴스</button>
+      <button class="tab-btn" onclick="switchTab('ai',this)">🤖 AI 분석</button>
     </div>
 
-    <!-- 차트 탭 -->
+    <!-- 1. 차트 탭 -->
     <div class="tab-panel active" id="tab-chart">
       <div class="chart-controls">
         <button class="range-btn active" onclick="changeRange('1mo',this)">1M</button>
@@ -436,38 +390,68 @@ async function renderMain(ticker) {
         
         <div class="compare-box">
           <span>vs</span>
-          <input type="text" id="compareInput" placeholder="비교할 티커 (예: MSFT)" onkeydown="if(event.key==='Enter') addCompare()">
+          <input type="text" id="compareInput" placeholder="티커 (예: MSFT)" onkeydown="if(event.key==='Enter') addCompare()">
           <button onclick="addCompare()">적용</button>
           <button class="clear-btn" id="compareClearBtn" onclick="removeCompare()">해제</button>
         </div>
       </div>
       <div class="chart-wrap">
-        <div class="chart-loading" id="chartLoading"><span class="spinner"></span>차트 데이터 로딩 중...</div>
+        <div class="chart-loading" id="chartLoading"><span class="spinner"></span>데이터 로딩 중...</div>
         <canvas id="priceChart"></canvas>
       </div>
-      
       <div class="indicators-grid" id="indicatorsGrid"></div>
     </div>
 
-    <!-- 뉴스/리포트 탭 -->
+    <!-- 2. 재무 & 지표 탭 (신규) -->
+    <div class="tab-panel" id="tab-stats">
+      <div class="stats-grid-container">
+        <div>
+          <div class="stats-section-title">가치 평가 (Valuation)</div>
+          <div class="stats-grid">
+            <div class="stat-card"><div class="label">PER (주가수익비율)</div><div class="value">${fmt(d.per)}</div><div class="sub">업종 평균과 비교 필요</div></div>
+            <div class="stat-card"><div class="label">PBR (주가순자산비율)</div><div class="value">${fmt(d.pbr)}</div><div class="sub">1 미만시 저평가 가능성</div></div>
+            <div class="stat-card"><div class="label">ROE (자기자본이익률)</div><div class="value">${d.roe != null ? fmt(d.roe*100)+'%' : '--'}</div><div class="sub">기업의 수익성 지표</div></div>
+            <div class="stat-card"><div class="label">배당수익률</div><div class="value" style="color:var(--up)">${d.divYield != null ? fmt(d.divYield*100)+'%' : '--'}</div><div class="sub">연간 예상 배당률</div></div>
+          </div>
+        </div>
+        <div>
+          <div class="stats-section-title">거래 현황 (Trading)</div>
+          <div class="stats-grid">
+            <div class="stat-card"><div class="label">당일 거래량</div><div class="value">${fmt(d.volume,0)}</div></div>
+            <div class="stat-card"><div class="label">평균 거래량 (3개월)</div><div class="value">${fmt(d.avgVolume,0)}</div><div class="sub">유동성 확인</div></div>
+            <div class="stat-card"><div class="label">52주 최고가</div><div class="value" style="color:var(--up)">${fmt(d.fiftyTwoHigh)}</div></div>
+            <div class="stat-card"><div class="label">52주 최저가</div><div class="value" style="color:var(--down)">${fmt(d.fiftyTwoLow)}</div></div>
+          </div>
+        </div>
+        <div>
+          <div class="stats-section-title">전문가 목표가</div>
+          <div class="stats-grid">
+            <div class="stat-card"><div class="label">목표 주가 (Consensus)</div><div class="value">${d.targetPrice ? cs(d.currency)+fmt(d.targetPrice) : '--'}</div><div class="sub">월가 평균 목표치</div></div>
+            <div class="stat-card"><div class="label">투자의견</div><div class="value">${d.recommendation ? d.recommendation.toUpperCase() : '--'}</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. 뉴스 탭 -->
     <div class="tab-panel" id="tab-news">
       <div id="analystSection"></div>
       <div class="news-list" id="newsList"><span class="spinner"></span> 뉴스 불러오는 중...</div>
     </div>
 
-    <!-- AI 탭 (API KEY 고정됨) -->
+    <!-- 4. AI 탭 -->
     <div class="tab-panel" id="tab-ai">
       <div class="ai-panel">
         <div class="ai-panel-header">
           <div class="ai-title">✨ Gemini AI Report</div>
           <div class="api-key-box">
-            <span>✅ 실시간 AI 모델 연결됨</span>
+            <span>✅ AI 모델 연결됨</span>
             <button class="ai-analyze-btn" id="aiBtn" onclick="runGeminiAI()">AI 분석 시작</button>
           </div>
         </div>
         <div class="ai-content" id="aiContent">
           <div class="ai-placeholder">
-            <b>Gemini 1.5 Flash 모델</b>이 차트 추세, 펀더멘탈(PER, PBR), 월가 투자의견을 종합하여 실시간 분석 리포트를 작성합니다.<br><br>
+            <b>Gemini 1.5 Flash</b>가 차트, 거래량, 배당, 펀더멘탈을 종합하여 분석 리포트를 작성합니다.<br><br>
             * 'AI 분석 시작' 버튼을 눌러주세요.
           </div>
         </div>
@@ -475,10 +459,7 @@ async function renderMain(ticker) {
     </div>
   `;
 
-  currentRange = '1mo';
-  compareTicker = null;
-  compareHistoryData = null;
-  
+  currentRange = '1mo'; compareTicker = null; compareHistoryData = null;
   loadChart(ticker, currentRange);
   loadNewsAndAnalyst(ticker);
 }
@@ -490,29 +471,20 @@ function switchTab(name, btn) {
   document.getElementById('tab-' + name).classList.add('active');
 }
 
-// ---------------- CHART & INDICATORS ----------------
+// --- 차트 및 기술적 지표 (MACD 추가) ---
 async function loadChart(ticker, range) {
   const loading = document.getElementById('chartLoading');
   if(loading) loading.style.display = 'flex';
-  
   try {
     const hist = await fetchHistory(ticker, range);
     chartHistoryData[ticker] = hist;
-    
-    if(compareTicker) {
-      try {
-        compareHistoryData = await fetchHistory(compareTicker, range);
-      } catch(e) { 
-        showToast('비교 종목 데이터를 불러오지 못했습니다.', 'error'); 
-        compareTicker = null; 
-      }
-    }
-    
+    if(compareTicker) compareHistoryData = await fetchHistory(compareTicker, range).catch(()=>null);
     drawChart();
     renderTechnical(hist);
-    if(loading) loading.style.display = 'none';
   } catch (e) {
-    if(loading) loading.innerHTML = '데이터 로드 실패: ' + e.message;
+    if(loading) loading.innerHTML = '차트를 불러오지 못했습니다.';
+  } finally {
+    if(loading) loading.style.display = 'none';
   }
 }
 
@@ -520,19 +492,16 @@ function drawChart() {
   const canvas = document.getElementById('priceChart');
   if(!canvas) return;
   if(priceChart) priceChart.destroy();
-
   const hist = chartHistoryData[activeTicker];
   if(!hist || hist.length === 0) return;
-
+  
   const labels = hist.map(d => d.date.toLocaleDateString('ko-KR', {month:'short', day:'numeric'}));
   const isCompare = compareTicker && compareHistoryData;
   let data1, data2;
   
   if(isCompare) {
-    const base1 = hist[0].close;
-    data1 = hist.map(d => ((d.close - base1) / base1) * 100);
-    const base2 = compareHistoryData[0].close;
-    data2 = compareHistoryData.map(d => ((d.close - base2) / base2) * 100);
+    const base1 = hist[0].close; data1 = hist.map(d => ((d.close - base1) / base1) * 100);
+    const base2 = compareHistoryData[0].close; data2 = compareHistoryData.map(d => ((d.close - base2) / base2) * 100);
   } else {
     data1 = hist.map(d => d.close);
   }
@@ -540,44 +509,24 @@ function drawChart() {
   const isUp = data1[data1.length-1] >= data1[0];
   const color = isUp ? '#16a34a' : '#dc2626';
   const ctx = canvas.getContext('2d');
-  
-  const datasets = [{
-    label: activeTicker,
-    data: data1,
-    borderColor: color,
-    borderWidth: 2,
-    pointRadius: 0,
-    tension: 0.1
-  }];
+  const datasets = [{ label: activeTicker, data: data1, borderColor: color, borderWidth: 2, pointRadius: 0, tension: 0.1 }];
 
   if(isCompare) {
-    datasets.push({
-      label: compareTicker,
-      data: data2,
-      borderColor: '#8b5cf6', 
-      borderWidth: 2,
-      pointRadius: 0,
-      tension: 0.1
-    });
+    datasets.push({ label: compareTicker, data: data2, borderColor: '#8b5cf6', borderWidth: 2, pointRadius: 0, tension: 0.1 });
   } else {
     const grad = ctx.createLinearGradient(0,0,0,300);
     grad.addColorStop(0, isUp ? 'rgba(22,163,74,0.2)' : 'rgba(220,38,38,0.2)');
     grad.addColorStop(1, 'rgba(255,255,255,0)');
-    datasets[0].backgroundColor = grad;
-    datasets[0].fill = true;
+    datasets[0].backgroundColor = grad; datasets[0].fill = true;
   }
 
   priceChart = new Chart(ctx, {
-    type: 'line',
-    data: { labels, datasets },
+    type: 'line', data: { labels, datasets },
     options: {
       responsive: true, maintainAspectRatio: false,
       interaction: { intersect: false, mode: 'index' },
       plugins: { legend: { display: isCompare } },
-      scales: {
-        x: { grid: { display: false } },
-        y: { position: 'right', ticks: { callback: v => isCompare ? v.toFixed(1) + '%' : v.toLocaleString() } }
-      }
+      scales: { x: { grid: { display: false } }, y: { position: 'right', ticks: { callback: v => isCompare ? v.toFixed(1) + '%' : v.toLocaleString() } } }
     }
   });
 }
@@ -600,34 +549,46 @@ async function addCompare() {
   loadChart(activeTicker, currentRange);
   hideToast();
 }
-
 function removeCompare() {
-  compareTicker = null;
-  compareHistoryData = null;
+  compareTicker = null; compareHistoryData = null;
   document.getElementById('compareInput').value = '';
   document.getElementById('compareClearBtn').style.display = 'none';
   drawChart();
 }
 
+// 기술적 지표 계산 (MACD 추가)
+function calcEMA(data, period) {
+  const k = 2 / (period + 1); let ema = [data[0]];
+  for (let i=1; i<data.length; i++) ema.push(data[i] * k + ema[i-1] * (1 - k));
+  return ema;
+}
 function renderTechnical(hist) {
   const grid = document.getElementById('indicatorsGrid');
-  if(!grid || hist.length < 20) { grid.innerHTML=''; return; }
+  if(!grid || hist.length < 26) { grid.innerHTML='<div style="color:var(--muted); grid-column:span 3;">데이터가 부족하여 기술적 지표를 계산할 수 없습니다.</div>'; return; }
   
   const closes = hist.map(d=>d.close);
   const last = closes[closes.length-1];
   
+  // SMA
   const sma20 = closes.slice(-20).reduce((a,b)=>a+b,0)/20;
-  const sma50 = closes.length >= 50 ? closes.slice(-50).reduce((a,b)=>a+b,0)/50 : null;
-  const smaSig = sma50 ? (sma20 > sma50 ? 'buy' : 'sell') : 'neutral';
   
+  // RSI
   let gain=0, loss=0;
   for(let i=closes.length-14; i<closes.length; i++){
     const diff = closes[i]-closes[i-1];
     if(diff>0) gain+=diff; else loss+=Math.abs(diff);
   }
-  const rs = (gain/14)/(loss/14);
+  const rs = loss===0 ? 0 : (gain/14)/(loss/14);
   const rsi = loss===0 ? 100 : 100-(100/(1+rs));
   const rsiSig = rsi>70?'sell':rsi<30?'buy':'neutral';
+
+  // MACD
+  const ema12 = calcEMA(closes, 12); const ema26 = calcEMA(closes, 26);
+  const macdLine = ema12.map((v, i) => v - ema26[i]);
+  const signalLine = calcEMA(macdLine.slice(25), 9);
+  const macd = macdLine[macdLine.length-1];
+  const signal = signalLine[signalLine.length-1];
+  const macdSig = macd > signal ? 'buy' : 'sell';
 
   grid.innerHTML = `
     <div class="indicator-card">
@@ -636,19 +597,19 @@ function renderTechnical(hist) {
       <div class="ind-bar-wrap"><div class="ind-bar" style="width:${rsi}%; background:var(--${rsiSig==='buy'?'up':rsiSig==='sell'?'down':'accent'})"></div></div>
     </div>
     <div class="indicator-card">
-      <div class="ind-header"><span class="ind-name">이동평균 (SMA)</span><span class="ind-signal ${smaSig}">${smaSig==='buy'?'정배열':smaSig==='sell'?'역배열':'중립'}</span></div>
-      <div class="ind-value" style="font-size:1rem; margin-top:8px;">20일: ${fmt(sma20)}</div>
-      <div style="font-size:0.8rem; color:var(--muted2); margin-top:4px;">50일: ${sma50?fmt(sma50):'--'}</div>
+      <div class="ind-header"><span class="ind-name">MACD</span><span class="ind-signal ${macdSig}">${macdSig==='buy'?'골든크로스':'데드크로스'}</span></div>
+      <div class="ind-value">${macd.toFixed(2)}</div>
+      <div style="font-size:0.75rem; color:var(--muted); margin-top:6px;">Signal: ${signal.toFixed(2)}</div>
     </div>
     <div class="indicator-card">
       <div class="ind-header"><span class="ind-name">MA 이격도</span><span class="ind-signal ${last>sma20?'buy':'sell'}">${last>sma20?'강세':'약세'}</span></div>
       <div class="ind-value">${((last-sma20)/sma20*100).toFixed(2)}%</div>
-      <div style="font-size:0.75rem; color:var(--muted); margin-top:6px;">현재가 대비 20일선</div>
+      <div style="font-size:0.75rem; color:var(--muted); margin-top:6px;">현재가 대비 20일 이동평균선</div>
     </div>
   `;
 }
 
-// ---------------- NEWS & ANALYSTS ----------------
+// --- 뉴스 및 애널리스트 ---
 async function loadNewsAndAnalyst(ticker) {
   const d = stockData[ticker];
   const anSection = document.getElementById('analystSection');
@@ -657,10 +618,8 @@ async function loadNewsAndAnalyst(ticker) {
   if (d.trend || (d.upgrades && d.upgrades.length)) {
     let html = `<div class="analyst-grid">`;
     if (d.trend) {
-      const t = d.trend;
-      const total = t.strongBuy + t.buy + t.hold + t.sell + t.strongSell || 1;
-      html += `<div class="analyst-card">
-        <h4 style="margin-bottom:16px; color:var(--text);">월가 투자의견 (Consensus)</h4>
+      const t = d.trend; const total = t.strongBuy + t.buy + t.hold + t.sell + t.strongSell || 1;
+      html += `<div class="analyst-card"><h4 style="margin-bottom:16px;">월가 투자의견</h4>
         <div style="display:flex; justify-content:space-between; text-align:center;">
           <div><div style="font-size:0.7rem;color:var(--muted)">강력매수</div><div style="font-weight:bold;color:var(--up);font-size:1.2rem">${t.strongBuy}</div></div>
           <div><div style="font-size:0.7rem;color:var(--muted)">매수</div><div style="font-weight:bold;color:var(--up);font-size:1.2rem">${t.buy}</div></div>
@@ -668,7 +627,7 @@ async function loadNewsAndAnalyst(ticker) {
           <div><div style="font-size:0.7rem;color:var(--muted)">매도</div><div style="font-weight:bold;color:var(--down);font-size:1.2rem">${t.sell}</div></div>
         </div>
         <div class="rating-bar-container">
-          <div style="width:${t.strongBuy/total*100}%; background:var(--up); opacity:1;"></div>
+          <div style="width:${t.strongBuy/total*100}%; background:var(--up);"></div>
           <div style="width:${t.buy/total*100}%; background:var(--up); opacity:0.6;"></div>
           <div style="width:${t.hold/total*100}%; background:var(--flat);"></div>
           <div style="width:${(t.sell+t.strongSell)/total*100}%; background:var(--down);"></div>
@@ -676,115 +635,99 @@ async function loadNewsAndAnalyst(ticker) {
       </div>`;
     }
     if (d.upgrades && d.upgrades.length) {
-      html += `<div class="analyst-card">
-        <h4 style="margin-bottom:16px; color:var(--text);">최근 증권사 리포트 (Up/Downgrades)</h4>
-        ${d.upgrades.map(u => `
-          <div class="rating-item">
-            <span style="font-weight:600">${u.firm}</span>
+      html += `<div class="analyst-card"><h4 style="margin-bottom:16px;">최근 증권사 리포트</h4>
+        ${d.upgrades.map(u => `<div class="rating-item"><span style="font-weight:600">${u.firm}</span>
             <span><span style="text-decoration:line-through;color:var(--muted);">${u.fromGrade}</span> ➔ <b style="color:var(--accent)">${u.toGrade}</b></span>
-          </div>
-        `).join('')}
-      </div>`;
+          </div>`).join('')}</div>`;
     }
-    html += `</div>`;
-    anSection.innerHTML = html;
-  } else {
-    anSection.innerHTML = '';
-  }
+    html += `</div>`; anSection.innerHTML = html;
+  } else { anSection.innerHTML = ''; }
 
   let allNews = [];
   try {
     const yahooNews = await proxyFetch(`https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(ticker)}&newsCount=5`);
     if(yahooNews.news) {
-      allNews = [...allNews, ...yahooNews.news.map(n => ({
-        title: n.title, link: n.link, source: n.publisher, date: new Date(n.providerPublishTime*1000)
-      }))];
+      allNews = yahooNews.news.map(n => ({ title: n.title, link: n.link, source: n.publisher, date: new Date(n.providerPublishTime*1000) }));
     }
   } catch(e){}
 
-  if(allNews.length === 0) {
-    newsSection.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);">관련 뉴스가 없습니다.</div>';
-    return;
-  }
-
+  if(allNews.length === 0) { newsSection.innerHTML = '<div style="padding:20px;text-align:center;color:var(--muted);">관련 뉴스가 없습니다.</div>'; return; }
   newsSection.innerHTML = allNews.slice(0, 10).map(n => {
-    const title = n.title.toLowerCase();
     let sent = 'neu';
-    if(/상승|급등|호재|돌파|buy|surge|gain|up|high/i.test(title)) sent = 'pos';
-    else if(/하락|급락|우려|위기|sell|drop|fall|down|risk/i.test(title)) sent = 'neg';
-    const timeStr = n.date ? n.date.toLocaleDateString() : n.pubDate;
-
+    if(/상승|급등|호재|돌파|buy|surge|gain|up|high/i.test(n.title)) sent = 'pos';
+    else if(/하락|급락|우려|위기|sell|drop|fall|down|risk/i.test(n.title)) sent = 'neg';
     return `
       <div class="news-item">
         <div class="news-meta">
           <span class="news-source">${n.source}</span>
-          <span class="news-time">${timeStr}</span>
-          <span class="news-sentiment ${sent}">${sent==='pos'?'긍정':sent==='neg'?'부정':'중립'}</span>
+          <span class="news-time">${n.date ? n.date.toLocaleDateString() : ''}</span>
         </div>
         <div class="news-title"><a href="${n.link}" target="_blank">${n.title}</a></div>
-      </div>
-    `;
+      </div>`;
   }).join('');
 }
 
-// ---------------- GEMINI AI (KEY 하드코딩 반영) ----------------
+// --- GEMINI AI (에러 처리 강화) ---
 async function runGeminiAI() {
   const btn = document.getElementById('aiBtn');
   const content = document.getElementById('aiContent');
-  
-  btn.disabled = true;
-  btn.innerHTML = '분석 중...';
-  content.innerHTML = '<div class="ai-placeholder"><span class="spinner"></span> AI가 데이터를 분석하고 리포트를 작성하고 있습니다... (약 5~10초 소요)</div>';
+  btn.disabled = true; btn.innerHTML = '분석 중...';
+  content.innerHTML = '<div class="ai-placeholder"><span class="spinner"></span> AI가 데이터를 분석하고 있습니다... (약 5~10초 소요)</div>';
 
   try {
     const d = stockData[activeTicker];
     const hist = chartHistoryData[activeTicker];
-    if (!d || !hist) throw new Error("주식 데이터가 충분하지 않습니다.");
+    if (!d || !hist) throw new Error("주식 데이터를 불러오지 못해 분석할 수 없습니다.");
 
     const closes = hist.map(x=>x.close);
     const sma20 = closes.slice(-20).reduce((a,b)=>a+b,0)/20;
     
-    const prompt = `당신은 월스트리트의 수석 주식 애널리스트입니다. 아래의 주식 데이터를 바탕으로 투자자에게 제공할 분석 리포트를 마크다운으로 작성해주세요. (한국어로 작성)
-
-    종목명: ${d.name} (${d.ticker})
-    현재가: ${d.price} ${d.currency} (전일대비 ${(d.price-d.prevClose).toFixed(2)})
-    펀더멘탈: PER ${d.per || '알수없음'}, PBR ${d.pbr || '알수없음'}, ROE ${d.roe ? (d.roe*100).toFixed(2)+'%' : '알수없음'}
+    // 데이터가 없을 경우 에러가 나지 않도록 '알 수 없음' 처리
+    const prompt = `당신은 월스트리트의 수석 주식 애널리스트입니다. 아래 데이터를 바탕으로 리포트를 마크다운으로 작성해주세요. (한국어로 작성)
+    종목명: ${d.name || '알수없음'} (${d.ticker})
+    현재가: ${d.price} ${d.currency || ''}
+    펀더멘탈: PER ${d.per || '알수없음'}, PBR ${d.pbr || '알수없음'}, ROE ${d.roe ? (d.roe*100).toFixed(2)+'%' : '알수없음'}, 배당률 ${d.divYield ? (d.divYield*100).toFixed(2)+'%' : '알수없음'}
     목표가: ${d.targetPrice || '없음'}
-    월가 투자의견: ${d.recommendation || '알수없음'}
-    기술적 지표: 20일 이동평균 ${sma20.toFixed(2)}
+    기술적 지표: 20일 이동평균 ${sma20.toFixed(2)}, 평균거래량 ${d.avgVolume || '알수없음'}
+    ### 1. 기술적 추세
+    ### 2. 가치 평가 (Valuation)
+    ### 3. 주요 리스크
+    ### 4. 종합 투자의견 (매수/매도/관망)`;
 
-    다음 4가지 섹션으로 나누어 작성하세요:
-    ### 1. 현재 기술적 추세
-    ### 2. 가치 및 펀더멘탈 분석
-    ### 3. 주요 리스크 요인
-    ### 4. 종합 투자의견 (매수/매도/관망) 및 요약`;
-
-    // 하드코딩된 API Key 사용
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
     });
 
-    if (!response.ok) throw new Error("API 요청에 실패했습니다. (키 만료 또는 일일 한도 초과)");
+    if (!response.ok) {
+      // 에러 상세 내용 파싱
+      const errObj = await response.json().catch(()=>({}));
+      const errMsg = errObj.error?.message || response.statusText;
+      if(response.status === 429) throw new Error("AI 분석 요청 한도를 초과했습니다. (잠시 후 다시 시도해주세요)");
+      else throw new Error(`API 통신 에러: ${errMsg}`);
+    }
+    
     const data = await response.json();
     let text = data.candidates[0].content.parts[0].text;
-    
     text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
     text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
     text = text.replace(/### (.*?)\n/g, '<h3>$1</h3>');
     text = text.replace(/\n/g, '<br>');
-
     content.innerHTML = text;
+
   } catch (error) {
-    content.innerHTML = `<div style="color:var(--down); font-weight:bold; padding:20px;">분석 실패: ${error.message}</div>`;
+    // 사용자에게 명확한 에러 원인 설명
+    content.innerHTML = `<div style="background:rgba(220,38,38,0.1); border-left:4px solid var(--down); padding:20px; border-radius:8px;">
+      <h3 style="color:var(--down); margin-top:0;">AI 분석에 실패했습니다 🚨</h3>
+      <p style="margin-top:10px;"><b>원인:</b> ${error.message}</p>
+      <p style="font-size:0.85rem; color:var(--muted2); margin-top:10px;">* 무료 API 키는 분당 요청 횟수가 제한되어 있습니다. 1분 뒤에 다시 시도해 주세요.</p>
+    </div>`;
   } finally {
-    btn.disabled = false;
-    btn.innerHTML = '다시 분석하기';
+    btn.disabled = false; btn.innerHTML = '다시 분석하기';
   }
 }
 
-// ---------------- APP LOGIC ----------------
+// --- 메인 로직 (병렬 처리로 로딩 시간 대폭 단축) ---
 async function addTicker(presetName = null) {
   const input = document.getElementById('tickerInput');
   const raw = presetName || input.value.trim();
@@ -797,93 +740,70 @@ async function addTicker(presetName = null) {
   if(watchlist.has(ticker)) { showToast('이미 추가된 종목입니다.'); selectTicker(ticker); return; }
   
   try {
-    const stock = await fetchStock(ticker);
-    const fund = await fetchFundamentals(ticker);
-    stockData[ticker] = { ...stock, ...fund };
+    // 기존 직렬 처리를 병렬(Promise.all)로 처리하여 로딩 속도 극대화
+    const [stock, fund] = await Promise.all([
+      fetchStock(ticker),
+      fetchFundamentals(ticker)
+    ]);
     
+    stockData[ticker] = { ...stock, ...fund };
     watchlist.add(ticker);
     renderWatchlist();
     hideToast();
     selectTicker(ticker);
   } catch(e) {
     console.error(e);
-    showToast('종목 정보를 찾을 수 없거나 서버 지연이 발생했습니다.', 'error');
+    showToast('종목 데이터를 가져오는 중 서버 연결이 지연되었습니다.', 'error');
   }
 }
 
 function removeTicker(ticker) {
-  watchlist.delete(ticker);
-  delete stockData[ticker];
+  watchlist.delete(ticker); delete stockData[ticker];
   if(activeTicker === ticker) {
-    activeTicker = null;
-    const next = [...watchlist][0];
+    activeTicker = null; const next = [...watchlist][0];
     if(next) selectTicker(next);
     else document.getElementById('mainArea').innerHTML = `<div class="main-empty"><div class="em-icon">📊</div><h2>종목을 추가해주세요</h2></div>`;
   }
   renderWatchlist();
 }
 
-async function selectTicker(ticker) {
-  activeTicker = ticker;
-  renderWatchlist();
-  await renderMain(ticker);
-}
+async function selectTicker(ticker) { activeTicker = ticker; renderWatchlist(); await renderMain(ticker); }
 
-// 자동 갱신 (10초)
 let countdown = 10;
 setInterval(async () => {
-  countdown--;
-  document.getElementById('countdownTimer').textContent = countdown + 's';
+  countdown--; document.getElementById('countdownTimer').textContent = countdown + 's';
   if(countdown <= 0) {
-    countdown = 10;
-    if(watchlist.size === 0) return;
-    
-    for(const t of watchlist) {
-      try {
-        const stock = await fetchStock(t);
-        stockData[t] = { ...stockData[t], ...stock };
-      } catch(e){}
-    }
+    countdown = 10; if(watchlist.size === 0) return;
+    for(const t of watchlist) { try { const stock = await fetchStock(t); stockData[t] = { ...stockData[t], ...stock }; } catch(e){} }
     renderWatchlist();
-    
     if(activeTicker && stockData[activeTicker]) {
-      const d = stockData[activeTicker];
-      const chg = d.price - d.prevClose;
-      const pct = chg / d.prevClose * 100;
-      const dir = chg > 0 ? 'up' : chg < 0 ? 'down' : 'flat';
-      const sign = chg > 0 ? '+' : '';
-      
-      const bp = document.querySelector('.big-price');
-      const bc = document.querySelector('.big-change');
+      const d = stockData[activeTicker]; const chg = d.price - d.prevClose; const pct = chg / d.prevClose * 100;
+      const bp = document.querySelector('.big-price'); const bc = document.querySelector('.big-change');
       if(bp && bc) {
         bp.textContent = cs(d.currency) + fmt(d.price);
-        bc.className = 'big-change ' + dir;
-        bc.textContent = `${sign}${fmt(chg)} (${sign}${fmt(pct)}%)`;
+        bc.className = 'big-change ' + (chg>0?'up':chg<0?'down':'flat');
+        bc.textContent = `${chg>0?'+':''}${fmt(chg)} (${chg>0?'+':''}${fmt(pct)}%)`;
       }
     }
   }
 }, 1000);
 
 document.getElementById('tickerInput').addEventListener('keydown', e => { if(e.key==='Enter') addTicker(); });
-
-// 모바일용 스크립트
 function openMobileModal() { document.getElementById('mobileModal').classList.add('open'); }
 function closeMobileModal() { document.getElementById('mobileModal').classList.remove('open'); }
 function closeMobileModalOutside(e) { if(e.target.id==='mobileModal') closeMobileModal(); }
 </script>
 
-<!-- 모바일 검색 모달 -->
 <button class="mobile-add-btn" onclick="openMobileModal()">+</button>
 <div class="mobile-modal" id="mobileModal" onclick="closeMobileModalOutside(event)">
   <div style="background:var(--surface); border-radius:16px 16px 0 0; padding:24px; width:100%;">
     <h3 style="margin-bottom:16px; color:var(--accent);">관심종목 추가</h3>
-    <input type="text" id="mobileTickerInput" placeholder="회사명 또는 티커 (예: 삼성전자)" style="width:100%; padding:12px; border:1px solid var(--border2); border-radius:8px; margin-bottom:16px; outline:none;" onkeydown="if(event.key==='Enter'){ addTicker(this.value); closeMobileModal(); }">
+    <input type="text" id="mobileTickerInput" placeholder="회사명 또는 티커 (예: 005930, AAPL)" style="width:100%; padding:12px; border:1px solid var(--border2); border-radius:8px; margin-bottom:16px; outline:none;" onkeydown="if(event.key==='Enter'){ addTicker(this.value); closeMobileModal(); }">
     <div style="display:flex; gap:10px;">
       <button onclick="addTicker(document.getElementById('mobileTickerInput').value); closeMobileModal();" style="flex:1; background:var(--accent); color:#fff; border:none; padding:12px; border-radius:8px; font-weight:bold;">검색</button>
       <button onclick="closeMobileModal()" style="background:var(--surface2); color:var(--muted2); border:none; padding:12px; border-radius:8px; font-weight:bold;">취소</button>
     </div>
   </div>
 </div>
-
 </body>
 </html>
