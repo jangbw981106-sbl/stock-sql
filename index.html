@@ -139,6 +139,189 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
 .status-toast { position:fixed; bottom:24px; right:24px; background:var(--surface2); border:1px solid var(--border2); padding:10px 16px; border-radius:6px; font-family:'Space Mono',monospace; font-size:0.72rem; color:var(--text); z-index:999; transition:opacity 0.3s; display:none; }
 .status-toast.loading { border-color:var(--accent); color:var(--accent); }
 .status-toast.error { border-color:var(--down); color:var(--down); }
+
+/* ── MOBILE RESPONSIVE ── */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    height: auto;
+    position: relative;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .main {
+    margin-left: 0;
+    max-width: 100%;
+    padding: 16px;
+  }
+  .app { flex-direction: column; }
+
+  /* 모바일 사이드바: 가로 스크롤 watchlist */
+  .watchlist {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    padding: 6px 10px;
+    gap: 8px;
+    scrollbar-width: none;
+  }
+  .watchlist::-webkit-scrollbar { display: none; }
+  .watch-item {
+    flex-direction: column;
+    align-items: flex-start;
+    min-width: 100px;
+    padding: 8px 10px;
+    border-left: none;
+    border-bottom: 2px solid transparent;
+    border-radius: 6px;
+    background: var(--surface2);
+    flex-shrink: 0;
+  }
+  .watch-item.up { border-bottom-color: var(--up); }
+  .watch-item.down { border-bottom-color: var(--down); }
+  .watch-item.active { border-bottom-color: var(--accent); }
+  .wi-right { text-align: left; margin-top: 4px; }
+  .wi-remove { position: absolute; top: 4px; right: 4px; }
+  .watch-item { position: relative; }
+
+  /* 사이드바 검색/프리셋 숨김 (모바일에선 하단 버튼으로 대체) */
+  .sidebar-search { display: none; }
+  .preset-list { display: none; }
+  .sidebar-section-label { display: none; }
+  .sidebar-footer { display: none; }
+
+  /* 모바일 상단 헤더 */
+  .sidebar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+  }
+
+  /* 모바일 추가 버튼 (플로팅) */
+  .mobile-add-btn {
+    display: flex !important;
+  }
+
+  /* 메인 헤더 */
+  .main-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .big-price-area { text-align: left; }
+  .big-price { font-size: 1.6rem; }
+  .stock-title .big-ticker { font-size: 1.2rem; }
+
+  /* 스탯 그리드: 2열 */
+  .stat-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .stat-row .stat-box:last-child {
+    grid-column: 1 / -1;
+  }
+
+  /* 탭 스크롤 */
+  .tabs {
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex-wrap: nowrap;
+  }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab-btn { white-space: nowrap; padding: 10px 14px; font-size: 0.76rem; }
+
+  /* 차트 높이 축소 */
+  .chart-wrap { height: 220px; }
+
+  /* 기술적 지표: 2열 */
+  .indicators-grid { grid-template-columns: repeat(2, 1fr); }
+
+  /* 차트 컨트롤 스크롤 */
+  .chart-controls { overflow-x: auto; scrollbar-width: none; flex-wrap: nowrap; }
+  .chart-controls::-webkit-scrollbar { display: none; }
+  .range-btn, .chart-type-btn { white-space: nowrap; flex-shrink: 0; }
+}
+
+@media (max-width: 400px) {
+  .indicators-grid { grid-template-columns: 1fr; }
+  .stat-row { grid-template-columns: repeat(2, 1fr); }
+  .big-price { font-size: 1.3rem; }
+}
+
+/* 모바일 플로팅 추가 버튼 (기본 숨김) */
+.mobile-add-btn {
+  display: none;
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 200;
+  background: var(--accent);
+  color: #000;
+  border: none;
+  width: 52px; height: 52px;
+  border-radius: 50%;
+  font-size: 1.4rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 20px rgba(0,229,255,0.35);
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s, opacity 0.2s;
+}
+.mobile-add-btn:hover { transform: scale(1.1); }
+
+/* 모바일 검색 모달 */
+.mobile-modal {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 300;
+  align-items: flex-end;
+}
+.mobile-modal.open { display: flex; }
+.mobile-modal-inner {
+  background: var(--surface);
+  border-radius: 16px 16px 0 0;
+  padding: 24px 20px 40px;
+  width: 100%;
+  border-top: 1px solid var(--border);
+}
+.mobile-modal-title {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.8rem; color: var(--accent);
+  letter-spacing: 2px; margin-bottom: 16px;
+}
+.mobile-modal input {
+  width: 100%; background: var(--surface2);
+  border: 1px solid var(--border2);
+  color: var(--text); padding: 12px 16px;
+  font-family: 'Space Mono', monospace; font-size: 0.85rem;
+  outline: none; border-radius: 6px; margin-bottom: 12px;
+  text-transform: uppercase;
+}
+.mobile-modal input:focus { border-color: var(--accent); }
+.mobile-modal-actions { display: flex; gap: 10px; }
+.mobile-modal-confirm {
+  flex: 1; background: var(--accent); color: #000;
+  border: none; padding: 12px; border-radius: 6px;
+  font-family: 'Space Mono', monospace; font-size: 0.8rem;
+  font-weight: 700; cursor: pointer;
+}
+.mobile-modal-cancel {
+  background: var(--surface2); color: var(--muted2);
+  border: 1px solid var(--border2); padding: 12px 20px;
+  border-radius: 6px; font-family: 'Space Mono', monospace;
+  font-size: 0.8rem; cursor: pointer;
+}
+.mobile-presets {
+  display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 16px;
+}
+.mobile-preset-btn {
+  background: transparent; border: 1px solid var(--border2);
+  color: var(--muted2); padding: 6px 14px;
+  font-family: 'Space Mono', monospace; font-size: 0.7rem;
+  cursor: pointer; border-radius: 3px; transition: all 0.2s;
+}
+.mobile-preset-btn:hover { border-color: var(--accent); color: var(--accent); }
 </style>
 </head>
 <body>
@@ -832,5 +1015,65 @@ async function refreshAll(){
 
 document.getElementById('tickerInput').addEventListener('keydown',e=>{if(e.key==='Enter')addTicker();});
 </script>
+
+<!-- 모바일 플로팅 추가 버튼 -->
+<button class="mobile-add-btn" onclick="openMobileModal()" title="종목 추가">+</button>
+
+<!-- 모바일 검색 모달 -->
+<div class="mobile-modal" id="mobileModal" onclick="closeMobileModalOutside(event)">
+  <div class="mobile-modal-inner">
+    <div class="mobile-modal-title">종목 추가</div>
+    <div class="mobile-presets">
+      <button class="mobile-preset-btn" onclick="mobileAddPreset('AAPL')">AAPL</button>
+      <button class="mobile-preset-btn" onclick="mobileAddPreset('NVDA')">NVDA</button>
+      <button class="mobile-preset-btn" onclick="mobileAddPreset('TSLA')">TSLA</button>
+      <button class="mobile-preset-btn" onclick="mobileAddPreset('MSFT')">MSFT</button>
+      <button class="mobile-preset-btn" onclick="mobileAddPreset('GOOGL')">GOOGL</button>
+      <button class="mobile-preset-btn" onclick="mobileAddPreset('META')">META</button>
+      <button class="mobile-preset-btn" onclick="mobileAddPreset('005930.KS')">삼성전자</button>
+      <button class="mobile-preset-btn" onclick="mobileAddPreset('000660.KS')">SK하이닉스</button>
+      <button class="mobile-preset-btn" onclick="mobileAddPreset('BTC-USD')">BTC</button>
+      <button class="mobile-preset-btn" onclick="mobileAddPreset('^GSPC')">S&amp;P500</button>
+    </div>
+    <input type="text" id="mobileTickerInput" placeholder="직접 입력 (예: AAPL, 005930.KS)" />
+    <div class="mobile-modal-actions">
+      <button class="mobile-modal-confirm" onclick="mobileAddTicker()">추가</button>
+      <button class="mobile-modal-cancel" onclick="closeMobileModal()">닫기</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function openMobileModal() {
+  document.getElementById('mobileModal').classList.add('open');
+  setTimeout(()=>document.getElementById('mobileTickerInput').focus(), 100);
+}
+function closeMobileModal() {
+  document.getElementById('mobileModal').classList.remove('open');
+}
+function closeMobileModalOutside(e) {
+  if(e.target.id==='mobileModal') closeMobileModal();
+}
+async function mobileAddTicker() {
+  const input = document.getElementById('mobileTickerInput');
+  const raw = input.value.trim().toUpperCase();
+  if(!raw) return;
+  input.value = '';
+  closeMobileModal();
+  if(!watchlist.has(raw)) {
+    watchlist.add(raw); renderWatchlist();
+    await loadTickerData(raw); renderWatchlist();
+  }
+  selectTicker(raw);
+}
+async function mobileAddPreset(t) {
+  closeMobileModal();
+  await addPreset(t);
+}
+document.getElementById('mobileTickerInput').addEventListener('keydown', e=>{
+  if(e.key==='Enter') mobileAddTicker();
+});
+</script>
+
 </body>
 </html>
