@@ -8,18 +8,17 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root {
-  /* Light Theme Colors */
   --bg: #f4f6f8;
   --surface: #ffffff;
   --surface2: #f3f4f6;
   --border: #e5e7eb;
   --border2: #d1d5db;
-  --accent: #2563eb; /* Tailwind Blue 600 */
-  --text: #111827; /* Tailwind Gray 900 */
-  --muted: #6b7280; /* Tailwind Gray 500 */
-  --muted2: #4b5563; /* Tailwind Gray 600 */
-  --up: #16a34a; /* Tailwind Green 600 */
-  --down: #dc2626; /* Tailwind Red 600 */
+  --accent: #2563eb;
+  --text: #111827;
+  --muted: #6b7280;
+  --muted2: #4b5563;
+  --up: #16a34a;
+  --down: #dc2626;
   --flat: #6b7280;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -252,7 +251,8 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
 <script>
 const watchlist = new Set();
 const stockData = {};
-const historyData = {};
+const chartHistoryData = {};
+const techHistoryData = {};
 let activeTicker = null;
 let priceChart = null;
 let currentRange = '1mo';
@@ -276,8 +276,8 @@ function showToast(msg,type='') {
 function hideToast(){document.getElementById('statusToast').style.display='none';}
 
 async function proxyFetch(url) {
-  const proxies =[
-    u => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
+  const proxies = [
+    u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
     u => `https://corsproxy.io/?${encodeURIComponent(u)}`
   ];
 
@@ -289,11 +289,12 @@ async function proxyFetch(url) {
       const text = await res.text();
       let parsed;
       try {
-        const wrapper = JSON.parse(text);
-        if (wrapper.contents) parsed = JSON.parse(wrapper.contents);
-        else parsed = wrapper;
-      } catch {
         parsed = JSON.parse(text);
+      } catch {
+        continue;
+      }
+      if (parsed.contents && typeof parsed.contents === 'string') {
+         try { return JSON.parse(parsed.contents); } catch { return parsed; }
       }
       return parsed;
     } catch (e) {}
@@ -319,8 +320,8 @@ async function fetchStock(ticker) {
   const isClosed=meta.marketState==='CLOSED';
   return {
     ticker:meta.symbol, name:meta.shortName||meta.symbol,
-    price:isClosed?(meta.regularMarketPreviousClose||meta.regularMarketPrice):meta.regularMarketPrice,
-    prevClose:meta.chartPreviousClose||meta.previousClose,
+    price:meta.regularMarketPrice,
+    prevClose:meta.chartPreviousClose||meta.previousClose||meta.regularMarketPreviousClose,
     open:meta.regularMarketOpen, high:meta.regularMarketDayHigh,
     low:meta.regularMarketDayLow, volume:meta.regularMarketVolume,
     currency:meta.currency, marketState:meta.marketState, isClosed,
@@ -361,7 +362,7 @@ async function fetchHistory(ticker,range='1mo') {
 }
 
 async function fetchNews(ticker) {
-  const results =[];
+  const results = [];
   try {
     const json=await proxyFetch(`https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(ticker)}&newsCount=8&quotesCount=0`);
     if(json.news&&json.news.length) return json.news;
@@ -370,25 +371,26 @@ async function fetchNews(ticker) {
 }
 
 async function fetchMarketNews() {
-  const sources =[
+  const sources = [
     { name:'Reuters 속보', url:'https://feeds.reuters.com/reuters/businessNews' },
     { name:'Yahoo Finance', url:'https://finance.yahoo.com/news/rssindex' },
     { name:'한국경제(한경)', url:'https://rss.hankyung.com/feed/hei.xml' },
     { name:'매일경제(매경)', url:'https://www.mk.co.kr/rss/40300001/' }
   ];
-  const items =[];
+  const items = [];
   for(const src of sources) {
     try {
       let xmlText = null;
-      const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(src.url)}`;
+      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(src.url)}`;
       const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(6000) });
       if (!res.ok) continue;
-      const text = await res.text();
-      try {
-        const w = JSON.parse(text);
-        xmlText = w.contents || text;
-      } catch { xmlText = text; }
-      
+      xmlText = await res.text();
+      if (xmlText.startsWith('{')) {
+        try {
+          const w = JSON.parse(xmlText);
+          if (w.contents) xmlText = w.contents;
+        } catch {}
+      }
       if (!xmlText) continue;
       const parser = new DOMParser();
       const xml = parser.parseFromString(xmlText, 'text/xml');
@@ -400,7 +402,7 @@ async function fetchMarketNews() {
         const pubDate = el.querySelector('pubDate')?.textContent||'';
         items.push({ title, link, pubDate, source: src.name });
       });
-    } catch {} // ignore errors for single source
+    } catch {} 
   }
   return items;
 }
@@ -419,7 +421,7 @@ function renderWatchlist() {
   if(!watchlist.size){el.innerHTML=`<div style="padding:20px 16px;font-size:0.75rem;color:var(--muted);font-weight:600;">종목을 추가해보세요</div>`;return;}
   el.innerHTML=[...watchlist].map(t=>{
     const d=stockData[t];
-    if(!d)return`<div class="watch-item"><div class="wi-left"><div class="wi-ticker">${t}</div><div class="wi-name"><span class="spinner"></span></div></div></div>`;
+    if(!d)return`<div class="watch-item${activeTicker===t?' active':''}"><div class="wi-left"><div class="wi-ticker">${t}</div><div class="wi-name"><span class="spinner"></span></div></div></div>`;
     const chg=d.price-d.prevClose,pct=chg/d.prevClose*100;
     const dir=chg>0.005?'up':chg<-0.005?'down':'flat';
     const sign=chg>0?'+':'';
@@ -474,7 +476,7 @@ async function renderMain(ticker) {
         <button class="range-btn" onclick="changeRange('6mo',this)">6M</button>
         <button class="range-btn" onclick="changeRange('1y',this)">1Y</button>
         <button class="range-btn" onclick="changeRange('2y',this)">2Y</button>
-        <div style="flex:1"></div>
+        <div style="flex:1;"></div>
         <button class="chart-type-btn active" onclick="toggleChartType('line',this)">라인</button>
         <button class="chart-type-btn" onclick="toggleChartType('bar',this)">바</button>
       </div>
@@ -531,10 +533,9 @@ async function loadChart(ticker,range) {
   try {
     const hist=await fetchHistory(ticker,range);
     if(myToken !== chartLoadToken) return;
-    historyData[ticker]=hist;
+    chartHistoryData[ticker]=hist;
     drawChart(hist);
     if(loading)loading.style.display='none';
-    renderTechnical(ticker,hist);
   } catch(e) {
     if(myToken !== chartLoadToken) return;
     if(loading){ loading.style.display='flex'; loading.innerHTML='차트 데이터 오류: '+e.message; }
@@ -559,7 +560,7 @@ function drawChart(hist) {
     },
     scales:{
       x:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#6b7280',font:{family:'Space Mono',size:10},maxTicksLimit:8},border:{color:'#d1d5db'}},
-      y:{position:'right',grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#6b7280',font:{family:'Space Mono',size:10},callback:v=>v.toLocaleString('en-US',{maximumFractionDigits:0})},border:{color:'#d1d5db'}}
+      y:{position:'right',grid:{color:'rgba(0,0,0,0.04)'},ticks:{color:'#6b7280',font:{family:'Space Mono',size:10},callback:v=>v.toLocaleString('en-US',{minimumFractionDigits: v < 10 ? 2 : 0, maximumFractionDigits: v < 10 ? 2 : 0})},border:{color:'#d1d5db'}}
     }
   };
   if(currentChartType==='bar'){
@@ -582,14 +583,14 @@ function toggleChartType(type,btn) {
   currentChartType=type;
   document.querySelectorAll('.chart-type-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
-  const hist=historyData[activeTicker];
+  const hist=chartHistoryData[activeTicker];
   if(hist)drawChart(hist);
 }
 
 async function loadTechnical(ticker) {
-  let hist=historyData[ticker];
+  let hist=techHistoryData[ticker];
   if(!hist){
-    try{hist=await fetchHistory(ticker,'3mo');historyData[ticker]=hist;}
+    try{hist=await fetchHistory(ticker,'6mo');techHistoryData[ticker]=hist;}
     catch{document.getElementById('indicatorsGrid').innerHTML='<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--down);font-size:0.8rem;">지표 로드 실패</div>';return;}
   }
   renderTechnical(ticker,hist);
@@ -601,41 +602,41 @@ function renderTechnical(ticker,hist) {
   const ind=getIndicators(hist);
   const sc={buy:'var(--up)',sell:'var(--down)',neutral:'var(--flat)'};
 
-  const rsiSig=ind.rsi?(ind.rsi>70?'sell':ind.rsi<30?'buy':'neutral'):'neutral';
-  const smaSig=ind.sma20&&ind.sma50?(ind.sma20>ind.sma50?'buy':'sell'):'neutral';
-  const macd=ind.ema12&&ind.ema26?ind.ema12-ind.ema26:null;
-  const macdSig=macd?(macd>0?'buy':'sell'):'neutral';
-  const bollPct=ind.boll&&ind.last?((ind.last-ind.boll.lower)/(ind.boll.upper-ind.boll.lower)*100):null;
+  const rsiSig=ind.rsi!=null?(ind.rsi>70?'sell':ind.rsi<30?'buy':'neutral'):'neutral';
+  const smaSig=ind.sma20!=null&&ind.sma50!=null?(ind.sma20>ind.sma50?'buy':'sell'):'neutral';
+  const macd=ind.ema12!=null&&ind.ema26!=null?ind.ema12-ind.ema26:null;
+  const macdSig=macd!=null?(macd>0?'buy':'sell'):'neutral';
+  const bollPct=ind.boll!=null&&ind.last!=null?((ind.last-ind.boll.lower)/(ind.boll.upper-ind.boll.lower)*100):null;
   const bollSig=bollPct!=null?(bollPct>80?'sell':bollPct<20?'buy':'neutral'):'neutral';
   const vols=hist.slice(-10).map(d=>d.volume||0);
   const vr=vols.slice(5).reduce((a,b)=>a+b,0)/5,vp=vols.slice(0,5).reduce((a,b)=>a+b,0)/5;
   const volSig=vr>vp*1.1?'buy':vr<vp*0.9?'sell':'neutral';
-  const pMaSig=ind.sma20&&ind.last?(ind.last>ind.sma20?'buy':'sell'):'neutral';
-  const pMaDiff=ind.sma20&&ind.last?((ind.last-ind.sma20)/ind.sma20*100):null;
+  const pMaSig=ind.sma20!=null&&ind.last!=null?(ind.last>ind.sma20?'buy':'sell'):'neutral';
+  const pMaDiff=ind.sma20!=null&&ind.last!=null?((ind.last-ind.sma20)/ind.sma20*100):null;
 
   grid.innerHTML=`
   <div class="indicator-card">
     <div class="ind-header"><span class="ind-name">RSI (14)</span><span class="ind-signal ${rsiSig}">${{sell:'과매수',buy:'과매도',neutral:'중립'}[rsiSig]}</span></div>
-    <div class="ind-value" style="color:${sc[rsiSig]}">${ind.rsi?ind.rsi.toFixed(1):'--'}</div>
-    <div class="ind-bar-wrap"><div class="ind-bar" style="width:${ind.rsi?Math.min(ind.rsi,100):50}%;background:${sc[rsiSig]}"></div></div>
+    <div class="ind-value" style="color:${sc[rsiSig]}">${ind.rsi!=null?ind.rsi.toFixed(1):'--'}</div>
+    <div class="ind-bar-wrap"><div class="ind-bar" style="width:${ind.rsi!=null?Math.min(ind.rsi,100):50}%;background:${sc[rsiSig]}"></div></div>
     <div style="font-size:0.65rem;color:var(--muted);margin-top:8px;">30↓ 과매도 · 70↑ 과매수</div>
   </div>
   <div class="indicator-card">
     <div class="ind-header"><span class="ind-name">이동평균 SMA</span><span class="ind-signal ${smaSig}">${{buy:'골든크로스',sell:'데드크로스',neutral:'중립'}[smaSig]}</span></div>
-    <div class="ind-value" style="color:${sc[smaSig]};font-size:0.95rem;">20일: ${ind.sma20?fmt(ind.sma20):'--'}</div>
-    <div style="font-size:0.8rem;color:var(--muted2);margin-top:4px;font-family:'Space Mono',monospace;">50일: ${ind.sma50?fmt(ind.sma50):'--'}</div>
-    <div style="font-size:0.65rem;color:var(--muted);margin-top:6px;">20일 ${ind.sma20&&ind.sma50?(ind.sma20>ind.sma50?'> 50일 (상승세)':'< 50일 (하락세)'):''}</div>
+    <div class="ind-value" style="color:${sc[smaSig]};font-size:0.95rem;">20일: ${ind.sma20!=null?fmt(ind.sma20):'--'}</div>
+    <div style="font-size:0.8rem;color:var(--muted2);margin-top:4px;font-family:'Space Mono',monospace;">50일: ${ind.sma50!=null?fmt(ind.sma50):'--'}</div>
+    <div style="font-size:0.65rem;color:var(--muted);margin-top:6px;">20일 ${ind.sma20!=null&&ind.sma50!=null?(ind.sma20>ind.sma50?'> 50일 (상승세)':'< 50일 (하락세)'):''}</div>
   </div>
   <div class="indicator-card">
     <div class="ind-header"><span class="ind-name">MACD</span><span class="ind-signal ${macdSig}">${{buy:'강세',sell:'약세',neutral:'중립'}[macdSig]}</span></div>
-    <div class="ind-value" style="color:${sc[macdSig]}">${macd?(macd>0?'+':'')+fmt(macd):'--'}</div>
-    <div class="ind-bar-wrap" style="margin-top:8px;"><div class="ind-bar" style="width:${macd&&ind.last?Math.min(Math.abs(macd)/ind.last*500,100):0}%;background:${sc[macdSig]}"></div></div>
+    <div class="ind-value" style="color:${sc[macdSig]}">${macd!=null?(macd>0?'+':'')+fmt(macd):'--'}</div>
+    <div class="ind-bar-wrap" style="margin-top:8px;"><div class="ind-bar" style="width:${macd!=null&&ind.last!=null?Math.min(Math.abs(macd)/ind.last*500,100):0}%;background:${sc[macdSig]}"></div></div>
     <div style="font-size:0.65rem;color:var(--muted);margin-top:8px;">EMA12 − EMA26 · 양수: 강세</div>
   </div>
   <div class="indicator-card">
     <div class="ind-header"><span class="ind-name">볼린저 밴드</span><span class="ind-signal ${bollSig}">${{sell:'상단 근접',buy:'하단 근접',neutral:'중간'}[bollSig]}</span></div>
     <div class="ind-value" style="color:${sc[bollSig]}">${bollPct!=null?bollPct.toFixed(0)+'%':'--'}</div>
-    ${ind.boll?`<div style="font-size:0.7rem;color:var(--muted2);margin-top:8px;font-family:'Space Mono',monospace;line-height:1.6;">상단: ${fmt(ind.boll.upper)}<br>중간: ${fmt(ind.boll.middle)}<br>하단: ${fmt(ind.boll.lower)}</div>`:''}
+    ${ind.boll!=null?`<div style="font-size:0.7rem;color:var(--muted2);margin-top:8px;font-family:'Space Mono',monospace;line-height:1.6;">상단: ${fmt(ind.boll.upper)}<br>중간: ${fmt(ind.boll.middle)}<br>하단: ${fmt(ind.boll.lower)}</div>`:''}
   </div>
   <div class="indicator-card">
     <div class="ind-header"><span class="ind-name">거래량 추세</span><span class="ind-signal ${volSig}">${{buy:'증가',sell:'감소',neutral:'보통'}[volSig]}</span></div>
@@ -736,7 +737,7 @@ async function loadNews(ticker) {
   el.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted2);font-size:0.8rem;"><span class="spinner"></span> 증권사 리포트 및 뉴스 로딩 중...</div>';
 
   const analystHtml = renderAnalystRatings(ticker);
-  const allItems =[];
+  const allItems = [];
 
   try {
     const news=await fetchNews(ticker);
@@ -796,11 +797,11 @@ async function runGeminiAnalysis(ticker) {
 
   try {
     const d = stockData[ticker];
-    const hist = historyData[ticker] ||[];
+    const hist = techHistoryData[ticker] || chartHistoryData[ticker] || [];
     if (!d || !hist.length) throw new Error("데이터가 부족합니다. 차트 로딩을 확인해주세요.");
 
     const ind = getIndicators(hist);
-    const macd = ind.ema12 && ind.ema26 ? ind.ema12 - ind.ema26 : null;
+    const macd = ind.ema12!=null && ind.ema26!=null ? ind.ema12 - ind.ema26 : null;
 
     const prompt = `당신은 월스트리트의 수석 주식 애널리스트입니다. 아래의 주식 데이터를 분석하여 투자자들에게 제공할 전문적인 리포트를 마크다운 형식으로 작성해주세요.\n\n종목명: ${d.name} (${ticker})\n현재가: ${cs(d.currency)} ${fmt(d.price)}\n펀더멘탈: PER ${fmt(d.per)}, PBR ${fmt(d.pbr)}, ROE ${d.roe != null ? fmt(d.roe * 100) + '%' : '--'}\n월가 투자의견: 평균 목표가 ${d.targetMeanPrice ? fmt(d.targetMeanPrice) : '--'}, 의견: ${d.recommendation || '정보 없음'}\n기술적 지표: RSI(14) ${ind.rsi?.toFixed(1)}, MACD ${macd ? macd.toFixed(2) : '--'}\n\n다음 4가지 항목으로 나누어 논리적이고 객관적으로 분석해주세요. (반드시 한국어로 작성하며, 너무 길지 않게 핵심만 짚어주세요)\n1. 현재 기술적 추세 (차트 관점)\n2. 기본적 분석 (가치 및 수익성 관점, PER/PBR/ROE 분석 포함)\n3. 단기 및 중장기 리스크 요인\n4. 종합 투자의견 (매수/매도/관망) 및 한 줄 요약`;
 
@@ -808,7 +809,7 @@ async function runGeminiAnalysis(ticker) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{ parts:[{ text: prompt }] }]
+        contents: [{ parts: [{ text: prompt }] }]
       })
     });
 
@@ -874,7 +875,10 @@ async function addPreset(t) {
 }
 
 function removeTicker(t) {
-  watchlist.delete(t); delete stockData[t]; delete historyData[t];
+  watchlist.delete(t); 
+  delete stockData[t]; 
+  delete chartHistoryData[t]; 
+  delete techHistoryData[t];
   if(activeTicker===t){
     activeTicker=null;
     const next=[...watchlist][0];
