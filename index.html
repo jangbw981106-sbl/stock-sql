@@ -212,11 +212,38 @@ function showToast(msg,type='') {
 function hideToast(){document.getElementById('statusToast').style.display='none';}
 
 async function proxyFetch(url) {
-  const res=await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
-  if(!res.ok) throw new Error('HTTP '+res.status);
-  const w=await res.json();
-  if(!w.contents) throw new Error('proxy error');
-  return JSON.parse(w.contents);
+  const proxies = [
+    u => `https://api.allorigins.win/get?url=${encodeURIComponent(u)}`,
+    u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
+    u => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(u)}`,
+  ];
+
+  for (const makeProxy of proxies) {
+    try {
+      const proxyUrl = makeProxy(url);
+      const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(8000) });
+      if (!res.ok) continue;
+
+      // allorigins wraps in {contents}, others return raw
+      const text = await res.text();
+      let parsed;
+      try {
+        const wrapper = JSON.parse(text);
+        // allorigins style
+        if (wrapper.contents) {
+          parsed = JSON.parse(wrapper.contents);
+        } else {
+          parsed = wrapper;
+        }
+      } catch {
+        parsed = JSON.parse(text);
+      }
+      return parsed;
+    } catch (e) {
+      console.warn('Proxy failed, trying next...', e.message);
+    }
+  }
+  throw new Error('모든 프록시 서버 연결 실패. 잠시 후 다시 시도해주세요.');
 }
 
 async function fetchStock(ticker) {
@@ -268,11 +295,26 @@ async function fetchMarketNews() {
   const items = [];
   for(const src of sources) {
     try {
-      const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(src.url)}`);
-      const w = await res.json();
-      if(!w.contents) continue;
+      let xmlText = null;
+      const proxyUrls = [
+        `https://api.allorigins.win/get?url=${encodeURIComponent(src.url)}`,
+        `https://corsproxy.io/?${encodeURIComponent(src.url)}`,
+      ];
+      for (const pu of proxyUrls) {
+        try {
+          const res = await fetch(pu, { signal: AbortSignal.timeout(6000) });
+          if (!res.ok) continue;
+          const text = await res.text();
+          try {
+            const w = JSON.parse(text);
+            xmlText = w.contents || text;
+          } catch { xmlText = text; }
+          break;
+        } catch {}
+      }
+      if (!xmlText) continue;
       const parser = new DOMParser();
-      const xml = parser.parseFromString(w.contents, 'text/xml');
+      const xml = parser.parseFromString(xmlText, 'text/xml');
       const entries = xml.querySelectorAll('item');
       entries.forEach((el,i) => {
         if(i>=3) return;
