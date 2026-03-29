@@ -47,7 +47,7 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
 .preset-btn:hover { border-color:var(--accent); color:var(--accent); }
 
 .watchlist { flex:1; padding:6px 0; }
-.watch-item { display:flex; align-items:center; justify-content:space-between; padding:9px 16px; cursor:pointer; border-left:2px solid transparent; transition:all 0.15s; }
+.watch-item { display:flex; align-items:center; justify-content:space-between; padding:9px 16px; cursor:pointer; border-left:2px solid transparent; transition:background 0.2s, border-color 0.2s; }
 .watch-item:hover { background:var(--surface2); }
 .watch-item.active { background:var(--surface2); border-left-color:var(--accent); }
 .watch-item.up { border-left-color:var(--up); }
@@ -55,7 +55,7 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
 .wi-left .wi-ticker { font-family:'Space Mono',monospace; font-size:0.78rem; font-weight:700; }
 .wi-left .wi-name { font-size:0.65rem; color:var(--muted2); margin-top:1px; }
 .wi-right { text-align:right; }
-.wi-price { font-family:'Space Mono',monospace; font-size:0.78rem; font-weight:600; }
+.wi-price { font-family:'Space Mono',monospace; font-size:0.78rem; font-weight:600; transition:color 0.3s; }
 .wi-change { font-family:'Space Mono',monospace; font-size:0.65rem; margin-top:1px; }
 .wi-change.up { color:var(--up); } .wi-change.down { color:var(--down); } .wi-change.flat { color:var(--flat); }
 .wi-remove { background:none; border:none; color:var(--muted); cursor:pointer; font-size:0.8rem; padding:2px 4px; margin-left:6px; border-radius:2px; transition:color 0.2s; flex-shrink:0; }
@@ -66,11 +66,17 @@ body::before { content:''; position:fixed; inset:0; background: radial-gradient(
 .stock-title .big-ticker { font-family:'Space Mono',monospace; font-size:1.6rem; font-weight:700; color:var(--accent); letter-spacing:1px; }
 .stock-title .big-name { font-size:0.85rem; color:var(--muted2); margin-top:2px; }
 .big-price-area { text-align:right; }
-.big-price { font-family:'Space Mono',monospace; font-size:2.2rem; font-weight:700; }
+.big-price { font-family:'Space Mono',monospace; font-size:2.2rem; font-weight:700; transition:color 0.3s; }
 .big-change { font-family:'Space Mono',monospace; font-size:0.85rem; padding:3px 10px; border-radius:3px; display:inline-block; margin-top:4px; }
 .big-change.up { background:rgba(22,163,74,0.1); color:var(--up); }
 .big-change.down { background:rgba(220,38,38,0.1); color:var(--down); }
 .big-change.flat { background:rgba(107,114,128,0.1); color:var(--flat); }
+
+/* 가격 반짝임 효과 (업데이트 시) */
+.flash-up { animation: flashGreen 1s ease-out; }
+.flash-down { animation: flashRed 1s ease-out; }
+@keyframes flashGreen { 0% { color: var(--up); } 100% { color: inherit; } }
+@keyframes flashRed { 0% { color: var(--down); } 100% { color: inherit; } }
 
 .stat-row { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:24px; }
 .stat-box { background:var(--surface); border:1px solid var(--border); border-radius:6px; padding:12px 14px; box-shadow:0 1px 3px rgba(0,0,0,0.02); }
@@ -275,7 +281,13 @@ function showToast(msg,type='') {
 }
 function hideToast(){document.getElementById('statusToast').style.display='none';}
 
+// 캐시 무효화를 위해 timestamp 파라미터 추가 기능 연동
 async function proxyFetch(url) {
+  // Add cache busting query param
+  const urlObj = new URL(url);
+  urlObj.searchParams.append('_', Date.now());
+  const fetchUrl = urlObj.toString();
+
   const proxies = [
     u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
     u => `https://corsproxy.io/?${encodeURIComponent(u)}`
@@ -283,8 +295,8 @@ async function proxyFetch(url) {
 
   for (const makeProxy of proxies) {
     try {
-      const proxyUrl = makeProxy(url);
-      const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(8000) });
+      const proxyUrl = makeProxy(fetchUrl);
+      const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(8000), cache: 'no-store' });
       if (!res.ok) continue;
       const text = await res.text();
       let parsed;
@@ -313,7 +325,7 @@ async function resolveTicker(query) {
 }
 
 async function fetchStock(ticker) {
-  const json=await proxyFetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1d&range=2d`);
+  const json=await proxyFetch(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?interval=1d&range=1d`);
   const result=json.chart?.result;
   if(!result?.length) throw new Error('no data');
   const meta=result[0].meta;
@@ -381,8 +393,8 @@ async function fetchMarketNews() {
   for(const src of sources) {
     try {
       let xmlText = null;
-      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(src.url)}`;
-      const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(6000) });
+      const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(src.url)}&_=${Date.now()}`;
+      const res = await fetch(proxyUrl, { signal: AbortSignal.timeout(6000), cache: 'no-store' });
       if (!res.ok) continue;
       xmlText = await res.text();
       if (xmlText.startsWith('{')) {
@@ -425,9 +437,9 @@ function renderWatchlist() {
     const chg=d.price-d.prevClose,pct=chg/d.prevClose*100;
     const dir=chg>0.005?'up':chg<-0.005?'down':'flat';
     const sign=chg>0?'+':'';
-    return`<div class="watch-item ${dir}${activeTicker===t?' active':''}" onclick="selectTicker('${t}')">
+    return`<div class="watch-item ${dir}${activeTicker===t?' active':''}" id="wi-${t}" onclick="selectTicker('${t}')">
       <div class="wi-left"><div class="wi-ticker">${t}</div><div class="wi-name">${d.name.length>14?d.name.slice(0,14)+'…':d.name}</div></div>
-      <div class="wi-right"><div class="wi-price">${cs(d.currency)}${fmt(d.price)}</div><div class="wi-change ${dir}">${sign}${fmt(pct)}%</div></div>
+      <div class="wi-right"><div class="wi-price" id="wi-price-${t}">${cs(d.currency)}${fmt(d.price)}</div><div class="wi-change ${dir}" id="wi-change-${t}">${sign}${fmt(pct)}%</div></div>
       <button class="wi-remove" onclick="event.stopPropagation();removeTicker('${t}')" title="삭제">×</button>
     </div>`;
   }).join('');
@@ -449,16 +461,16 @@ async function renderMain(ticker) {
         <div class="big-name">${d.name} · <span style="color:${d.isClosed?'var(--muted2)':'var(--accent)'; font-weight:600}">${stateLabel}</span> · ${d.isClosed?'종가':'현재가'}</div>
       </div>
       <div class="big-price-area">
-        <div class="big-price">${cs(d.currency)}${fmt(d.price)}</div>
-        <div class="big-change ${dir}">${sign}${fmt(chg)} (${sign}${fmt(pct)}%)</div>
+        <div class="big-price" id="main-big-price">${cs(d.currency)}${fmt(d.price)}</div>
+        <div class="big-change ${dir}" id="main-big-change">${sign}${fmt(chg)} (${sign}${fmt(pct)}%)</div>
       </div>
     </div>
     <div class="stat-row">
-      <div class="stat-box"><div class="stat-label">시가</div><div class="stat-value">${cs(d.currency)}${fmt(d.open)}</div></div>
-      <div class="stat-box"><div class="stat-label">고가</div><div class="stat-value" style="color:var(--up)">${cs(d.currency)}${fmt(d.high)}</div></div>
-      <div class="stat-box"><div class="stat-label">저가</div><div class="stat-value" style="color:var(--down)">${cs(d.currency)}${fmt(d.low)}</div></div>
-      <div class="stat-box"><div class="stat-label">전일 종가</div><div class="stat-value">${cs(d.currency)}${fmt(d.prevClose)}</div></div>
-      <div class="stat-box"><div class="stat-label">거래량</div><div class="stat-value">${fmt(d.volume,0)}</div></div>
+      <div class="stat-box"><div class="stat-label">시가</div><div class="stat-value" id="main-open">${cs(d.currency)}${fmt(d.open)}</div></div>
+      <div class="stat-box"><div class="stat-label">고가</div><div class="stat-value" id="main-high" style="color:var(--up)">${cs(d.currency)}${fmt(d.high)}</div></div>
+      <div class="stat-box"><div class="stat-label">저가</div><div class="stat-value" id="main-low" style="color:var(--down)">${cs(d.currency)}${fmt(d.low)}</div></div>
+      <div class="stat-box"><div class="stat-label">전일 종가</div><div class="stat-value" id="main-prev">${cs(d.currency)}${fmt(d.prevClose)}</div></div>
+      <div class="stat-box"><div class="stat-label">거래량</div><div class="stat-value" id="main-vol">${fmt(d.volume,0)}</div></div>
       <div class="stat-box"><div class="stat-label">PER</div><div class="stat-value">${fmt(d.per)}</div></div>
       <div class="stat-box"><div class="stat-label">PBR</div><div class="stat-value">${fmt(d.pbr)}</div></div>
       <div class="stat-box"><div class="stat-label">ROE</div><div class="stat-value">${d.roe != null ? fmt(d.roe * 100) + '%' : '--'}</div></div>
@@ -476,7 +488,7 @@ async function renderMain(ticker) {
         <button class="range-btn" onclick="changeRange('6mo',this)">6M</button>
         <button class="range-btn" onclick="changeRange('1y',this)">1Y</button>
         <button class="range-btn" onclick="changeRange('2y',this)">2Y</button>
-        <div style="flex:1;"></div>
+        <div style="flex:1"></div>
         <button class="chart-type-btn active" onclick="toggleChartType('line',this)">라인</button>
         <button class="chart-type-btn" onclick="toggleChartType('bar',this)">바</button>
       </div>
@@ -906,19 +918,75 @@ function tickCountdown(){
 }
 setInterval(tickCountdown,1000);
 
+// 매 10초마다 깜빡임(애니메이션) 효과와 함께 숫자를 새로고침하는 함수
 async function refreshAll(){
   if(!watchlist.size)return;
   await Promise.all([...watchlist].map(loadTickerData));
-  renderWatchlist();
-  if(activeTicker&&stockData[activeTicker]){
-    const d=stockData[activeTicker];
-    const chg=d.price-d.prevClose,pct=chg/d.prevClose*100;
-    const dir=chg>0.005?'up':chg<-0.005?'down':'flat';
-    const sign=chg>0?'+':'';
-    const bp=document.querySelector('.big-price');
-    const bc=document.querySelector('.big-change');
-    if(bp)bp.textContent=cs(d.currency)+fmt(d.price);
-    if(bc){bc.className='big-change '+dir;bc.textContent=`${sign}${fmt(chg)} (${sign}${fmt(pct)}%)`;}
+  
+  // Watchlist UI 업데이트
+  [...watchlist].forEach(t => {
+    const d = stockData[t];
+    if(!d) return;
+    const chg = d.price - d.prevClose, pct = chg / d.prevClose * 100;
+    const dir = chg > 0.005 ? 'up' : chg < -0.005 ? 'down' : 'flat';
+    const sign = chg > 0 ? '+' : '';
+    
+    const priceEl = document.getElementById(`wi-price-${t}`);
+    const changeEl = document.getElementById(`wi-change-${t}`);
+    const itemEl = document.getElementById(`wi-${t}`);
+    
+    if(priceEl && changeEl && itemEl) {
+      const oldPrice = parseFloat(priceEl.textContent.replace(/[^0-9.-]+/g,""));
+      const newPrice = d.price;
+      
+      if(oldPrice !== newPrice) {
+         priceEl.textContent = cs(d.currency) + fmt(d.price);
+         changeEl.className = 'wi-change ' + dir;
+         changeEl.textContent = `${sign}${fmt(pct)}%`;
+         itemEl.className = `watch-item ${dir}${activeTicker===t?' active':''}`;
+         
+         // 가격 상승/하락에 따른 깜빡임 애니메이션 추가
+         priceEl.classList.remove('flash-up', 'flash-down');
+         void priceEl.offsetWidth; // trigger reflow
+         priceEl.classList.add(newPrice > oldPrice ? 'flash-up' : 'flash-down');
+      }
+    }
+  });
+
+  // 메인 화면 UI 업데이트 (현재 보고 있는 종목)
+  if(activeTicker && stockData[activeTicker]){
+    const d = stockData[activeTicker];
+    const chg = d.price - d.prevClose, pct = chg / d.prevClose * 100;
+    const dir = chg > 0.005 ? 'up' : chg < -0.005 ? 'down' : 'flat';
+    const sign = chg > 0 ? '+' : '';
+    
+    const bp = document.getElementById('main-big-price');
+    const bc = document.getElementById('main-big-change');
+    const openEl = document.getElementById('main-open');
+    const highEl = document.getElementById('main-high');
+    const lowEl = document.getElementById('main-low');
+    const prevEl = document.getElementById('main-prev');
+    const volEl = document.getElementById('main-vol');
+    
+    if(bp) {
+      const oldPrice = parseFloat(bp.textContent.replace(/[^0-9.-]+/g,""));
+      const newPrice = d.price;
+      if (oldPrice !== newPrice) {
+        bp.textContent = cs(d.currency) + fmt(d.price);
+        bp.classList.remove('flash-up', 'flash-down');
+        void bp.offsetWidth;
+        bp.classList.add(newPrice > oldPrice ? 'flash-up' : 'flash-down');
+      }
+    }
+    if(bc) {
+      bc.className = 'big-change ' + dir;
+      bc.textContent = `${sign}${fmt(chg)} (${sign}${fmt(pct)}%)`;
+    }
+    if(openEl) openEl.textContent = cs(d.currency) + fmt(d.open);
+    if(highEl) highEl.textContent = cs(d.currency) + fmt(d.high);
+    if(lowEl) lowEl.textContent = cs(d.currency) + fmt(d.low);
+    if(prevEl) prevEl.textContent = cs(d.currency) + fmt(d.prevClose);
+    if(volEl) volEl.textContent = fmt(d.volume, 0);
   }
 }
 
